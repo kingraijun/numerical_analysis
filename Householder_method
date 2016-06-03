@@ -1,0 +1,369 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 86,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "import numpy as np"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 229,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "def householder(A, printAll=False):  \n",
+    "    n = len(A)    \n",
+    "    A_list = [A]\n",
+    "    isSymmetric = True\n",
+    "    \n",
+    "    if not np.allclose(A.transpose(), A):\n",
+    "        print(\"Note: Matrix is not symmetric.\")\n",
+    "        isSymmetric = False\n",
+    "    \n",
+    "    for k in range(n-2):\n",
+    "        \n",
+    "        v = np.zeros((n,1))\n",
+    "        u = np.zeros((n,1))\n",
+    "        z = np.zeros((n,1))\n",
+    "        \n",
+    "        if not isSymmetric:\n",
+    "            y = np.zeros((n,1))\n",
+    "        \n",
+    "        A_current = A_list[k]\n",
+    "        A_next = A_list[k]       \n",
+    "\n",
+    "        q = np.dot(A_current[k+1:,k],A_current[k+1:,k])\n",
+    "\n",
+    "        if A_current[k+1,k] == 0:\n",
+    "            alpha = -np.sqrt(q)\n",
+    "        else:\n",
+    "            alpha = -(np.sqrt(q)*A_current[k+1,k])/(np.abs(A_current[k+1,k]))\n",
+    "\n",
+    "        RSQ = alpha**2 - alpha*A_current[k+1,k]\n",
+    "\n",
+    "        v[k+1] = A_current[k+1,k] - alpha\n",
+    "        v[k+2:] = A_current[k+2:,k:k+1]\n",
+    "\n",
+    "        if isSymmetric:\n",
+    "            u = (1/RSQ)*np.dot(A_current,v)\n",
+    "        else:\n",
+    "            u = (1/RSQ)*np.dot(A_current[:,k+1:],v[k+1:])\n",
+    "            y = (1/RSQ)*np.dot(A_current[k+1:,:].T,v[k+1:])\n",
+    "            \n",
+    "        PROD = np.dot(v.T,u)\n",
+    "\n",
+    "        if isSymmetric:\n",
+    "            z = u - (1/(2*RSQ))*np.dot(v.T,u)*v\n",
+    "        else:\n",
+    "            z = u - (PROD/RSQ)*v\n",
+    "\n",
+    "        if isSymmetric:\n",
+    "            A_next = A_current - np.dot(v,z.T) - np.dot(z,v.T)\n",
+    "            A_next[-1,-1] = A_current[-1,-1] - 2*v[-1]*z[-1]\n",
+    "            \n",
+    "            A_next[k,k+2:] = np.zeros(n-k-2)\n",
+    "            A_next[k+2:,k] = np.zeros(n-k-2)\n",
+    "\n",
+    "            A_next[k+1,k] = A_current[k+1,k] - v[k+1]*z[k]\n",
+    "            A_next[k,k+1] = A_next[k+1,k]\n",
+    "            \n",
+    "        else:\n",
+    "            A_next[:k+1,k+1:] = A_current[:k+1,k+1:] - np.dot(z[:k+1],v[k+1:].T)\n",
+    "            A_next[k+1:,:k+1] = A_current[k+1:,:k+1] - np.dot(v[k+1:],y[:k+1].T)\n",
+    "            \n",
+    "            A_next[k+1:,k+1:] = A_current[k+1:,k+1:] - np.dot(z[k+1:],v[k+1:].T) - np.dot(y[k+1:],v[k+1:].T)\n",
+    "        \n",
+    "        A_list.append(A_next)\n",
+    "    \n",
+    "    if printAll:\n",
+    "        return np.around(A_list, decimals=7) \n",
+    "    else:\n",
+    "        return np.around(A_list[-1], decimals=7) "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Symmetric Matrix"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 230,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[ 4.       , -3.       ,  0.       ,  0.       ],\n",
+       "       [-3.       ,  3.3333333, -1.6666667,  0.       ],\n",
+       "       [ 0.       , -1.6666667, -1.32     ,  0.9066667],\n",
+       "       [ 0.       ,  0.       ,  0.9066667,  1.9866667]])"
+      ]
+     },
+     "execution_count": 230,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "A = np.array([\n",
+    "        [4,1,-2,2],\n",
+    "        [1,2,0,1],\n",
+    "        [-2,0,3,-2],\n",
+    "        [2,1,-2,-1]\n",
+    "    ])\n",
+    "\n",
+    "householder(A)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 231,
+   "metadata": {
+    "collapsed": false,
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[ 12.       , -10.7703296,   0.       ],\n",
+       "       [-10.7703296,   3.862069 ,   5.3448276],\n",
+       "       [  0.       ,   5.3448276,   7.137931 ]])"
+      ]
+     },
+     "execution_count": 231,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "E9_4_1a = np.array([\n",
+    "        [12,10,4],\n",
+    "        [10,8,-5],\n",
+    "        [4,-5,3]\n",
+    "    ])\n",
+    "\n",
+    "householder(E9_4_1a)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 232,
+   "metadata": {
+    "collapsed": false,
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[ 2.       ,  1.4142136,  0.       ],\n",
+       "       [ 1.4142136,  1.       , -0.       ],\n",
+       "       [ 0.       , -0.       ,  3.       ]])"
+      ]
+     },
+     "execution_count": 232,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "E9_4_1b = np.array([\n",
+    "        [2,-1,-1],\n",
+    "        [-1,2,-1],\n",
+    "        [-1,-1,2]\n",
+    "    ])\n",
+    "\n",
+    "householder(E9_4_1b)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 233,
+   "metadata": {
+    "collapsed": false,
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[ 1.       , -1.4142136,  0.       ],\n",
+       "       [-1.4142136,  1.       , -0.       ],\n",
+       "       [ 0.       , -0.       ,  1.       ]])"
+      ]
+     },
+     "execution_count": 233,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "E9_4_1c = np.array([\n",
+    "        [1,1,1],\n",
+    "        [1,1,0],\n",
+    "        [1,0,1]\n",
+    "    ])\n",
+    "\n",
+    "householder(E9_4_1c)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 234,
+   "metadata": {
+    "collapsed": false,
+    "scrolled": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[ 4.75     , -2.2638463,  0.       ],\n",
+       "       [-2.2638463,  4.4756098, -1.2195122],\n",
+       "       [ 0.       , -1.2195122,  5.0243902]])"
+      ]
+     },
+     "execution_count": 234,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "E9_4_1d = np.array([\n",
+    "        [4.75, 2.25, -0.25000001],\n",
+    "        [2.25, 4.75, 1.25],\n",
+    "        [-0.25, 1.25, 4.75]\n",
+    "    ])\n",
+    "\n",
+    "householder(E9_4_1d)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Non-symmetric Matrix"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 235,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "B = np.array([\n",
+    "        [4.,-1,-1,-1],\n",
+    "        [-1,4,0,-1],\n",
+    "        [-1,-1,4,-1],\n",
+    "        [-1,-1,-1,4]\n",
+    "    ])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 237,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Note: Matrix is not symmetric.\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "array([[[ 4.       , -1.7320508,  0.       ,  0.       ],\n",
+       "        [-1.7320508,  2.3333333, -1.6864404, -0.3468528],\n",
+       "        [ 0.       ,  1.3671985,  4.8057461, -0.1171805],\n",
+       "        [ 0.       ,  0.       ,  0.7815601,  4.8609205]],\n",
+       "\n",
+       "       [[ 4.       , -1.7320508,  0.       ,  0.       ],\n",
+       "        [-1.7320508,  2.3333333, -1.6864404, -0.3468528],\n",
+       "        [ 0.       ,  1.3671985,  4.8057461, -0.1171805],\n",
+       "        [ 0.       ,  0.       ,  0.7815601,  4.8609205]],\n",
+       "\n",
+       "       [[ 4.       , -1.7320508,  0.       ,  0.       ],\n",
+       "        [-1.7320508,  2.3333333, -1.6864404, -0.3468528],\n",
+       "        [ 0.       ,  1.3671985,  4.8057461, -0.1171805],\n",
+       "        [ 0.       ,  0.       ,  0.7815601,  4.8609205]]])"
+      ]
+     },
+     "execution_count": 237,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "householder(B, printAll=True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.5.1"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 0
+}
