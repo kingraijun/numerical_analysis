@@ -16,16 +16,13 @@ def householder(A, returnAll=False):
             If returnAll is True, return all the matrices produced from the method.
         
         Returns
-        ------_
+        -------
         A_list : list
-            List containing the matrices produced from the method. The last element of the list will be the final similar tridiagonal matrix of the input matrix.
-            If returnAll is True, return the actual list A_list. Else, return the last element of A_list.
+            List containing the matrices produced from the method. The last element of the list will be the final similar tridiagonal matrix of the input matrix. If returnAll is True, return the actual list A_list. Else, return the last element of A_list.
             
         Note
         ----
-        The input matrix should be a square matrix. Otherwise, an assertion error will be raised.
-        If the input matrix is symmetric, the Householder method will be used to produce its similar tridiagonal matrix.
-        If the input matrix is non-symmetric, a modified version of the method with be used which will produce an upper Hessenberg matrix. That is, the resulting matrix will have all the lower subdiagonal to be zero.
+        The input matrix should be a square matrix. Otherwise, an assertion error will be raised. If the input matrix is symmetric, the Householder method will be used to produce its similar tridiagonal matrix. If the input matrix is non-symmetric, a modified version of the method with be used which will produce an upper Hessenberg matrix. That is, the resulting matrix will have all the lower subdiagonal to be zero.
     """
     
     assert mt.isSquare(A), 'Input matrix is not a square matrix'
